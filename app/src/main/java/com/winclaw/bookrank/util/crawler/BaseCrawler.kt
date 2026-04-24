@@ -3,9 +3,15 @@ package com.winclaw.bookrank.util.crawler
 import com.winclaw.bookrank.data.model.BookRank
 import com.winclaw.bookrank.data.model.PlatformType
 import com.winclaw.bookrank.util.network.NetworkClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 import okhttp3.Request
 import java.io.IOException
+import kotlin.random.Random
 
 /**
  * 爬虫基类
