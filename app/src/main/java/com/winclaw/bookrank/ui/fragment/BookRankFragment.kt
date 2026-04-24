@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.winclaw.bookrank.R
+import com.winclaw.bookrank.data.model.BookRank
 import com.winclaw.bookrank.data.model.PlatformType
 import com.winclaw.bookrank.databinding.FragmentBookRankBinding
 import com.winclaw.bookrank.ui.adapter.BookRankAdapter
@@ -76,9 +77,9 @@ class BookRankFragment : Fragment() {
     
     private fun observeData() {
         platform?.let { p ->
-            viewModel.bookList.observe(viewLifecycleOwner) { books ->
+            viewModel.bookList.observe(viewLifecycleOwner) { books: List<BookRank> ->
                 // 只显示当前平台的书籍
-                val platformBooks = books.filter { it.platform == p }
+                val platformBooks = books.filter { book: BookRank -> book.platform == p }
                 adapter.submitList(platformBooks)
             }
         }
