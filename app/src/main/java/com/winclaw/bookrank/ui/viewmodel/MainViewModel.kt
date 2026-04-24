@@ -3,12 +3,14 @@ package com.winclaw.bookrank.ui.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.winclaw.bookrank.data.local.AppDatabase
-import com.winclaw.bookrank.data.local.BookRank
-import com.winclaw.bookrank.data.model.BookRank as BookRankModel
+import com.winclaw.bookrank.data.local.BookRankEntity
+import com.winclaw.bookrank.data.model.BookRank
 import com.winclaw.bookrank.data.model.PlatformType
 import com.winclaw.bookrank.util.crawler.CrawlManager
+import com.winclaw.bookrank.util.crawler.CrawlResult
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -21,38 +23,42 @@ class MainViewModel : ViewModel() {
     private val repository = com.winclaw.bookrank.data.local.BookRankRepository(database)
     private val crawlManager = CrawlManager()
     
-    private val _uiState = MutableLiveData<UiState>()
+    private val _uiState = MutableLiveData<UiState>(UiState.Idle)
     val uiState: LiveData<UiState> = _uiState
     
-    private val _currentPlatform = MutableLiveData<PlatformType>(PlatformType.QIANDIAN)
-    val currentPlatform: LiveData<PlatformType> = _currentPlatform
+    private val _currentPlatform = MutableStateFlow(PlatformType.QIANDIAN)
+    val currentPlatform: StateFlow<PlatformType> = _currentPlatform.asStateFlow()
     
-    private val _searchQuery = MutableLiveData("")
-    val searchQuery: LiveData<String> = _searchQuery
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
     
     // 书籍列表
-    val bookList: LiveData<List<BookRankModel>> = Transformations.switchMap(_currentPlatform) { platform ->
-        repository.getRanksByPlatform(platform.platformCode)
-            .map { list -> list.map { it.toBookRank() } }
-            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    }
+    val bookList: LiveData<List<BookRank>> = _currentPlatform
+        .flatMapLatest { platform ->
+            repository.getRanksByPlatform(platform.platformCode)
+                .map { entities -> entities.map { entity -> entity.toBookRank() } }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .asLiveData()
     
     // 热门榜单（跨平台）
-    val hotBooks: LiveData<List<BookRankModel>> = Transformations.map(
-        repository.getHotRanks(10)
-            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    ) { it }
+    val hotBooks: LiveData<List<BookRank>> = repository.getHotRanks(10)
+        .map { entities -> entities.map { entity -> entity.toBookRank() } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .asLiveData()
     
     // 搜索结果
-    val searchResults: LiveData<List<BookRankModel>> = Transformations.switchMap(_searchQuery) { query ->
-        if (query.isBlank()) {
-            flow { emit(emptyList()) }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-        } else {
-            repository.searchBooks(query)
-                .map { list -> list.map { it.toBookRank() } }
-                .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val searchResults: LiveData<List<BookRank>> = _searchQuery
+        .flatMapLatest { query ->
+            if (query.isBlank()) {
+                flow { emit(emptyList<BookRankEntity>()) }
+            } else {
+                repository.searchBooks(query)
+            }
         }
-    }
+        .map { entities -> entities.map { entity -> entity.toBookRank() } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .asLiveData()
     
     /**
      * 切换平台
@@ -69,7 +75,7 @@ class MainViewModel : ViewModel() {
         
         viewModelScope.launch {
             try {
-                val platform = _currentPlatform.value ?: PlatformType.QIANDIAN
+                val platform = _currentPlatform.value
                 val result = crawlManager.crawlPlatform(platform)
                 
                 if (result.success) {
