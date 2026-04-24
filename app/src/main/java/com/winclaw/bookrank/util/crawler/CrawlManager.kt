@@ -20,7 +20,8 @@ class CrawlManager(
         PlatformType.QIANDIAN to QidianCrawler(),
         PlatformType.JINJIANG to JjwxCrawler(),
         PlatformType.DOUBAN to DoubanCrawler(),
-        PlatformType.FANQIE to FanqieCrawler()
+        PlatformType.FANQIE to FanqieCrawler(),
+        PlatformType.QIMAO to QimaoCrawler()
     )
     
     /**
@@ -29,7 +30,7 @@ class CrawlManager(
     suspend fun crawlPlatform(platform: PlatformType, maxPages: Int = 5): CrawlResult {
         return withContext(Dispatchers.IO) {
             try {
-                val config = platformConfigs.find { it.platform == platform } ?: PlatformConfig(platform, "")
+                val config = platformConfigs.find { cfg -> cfg.platform == platform } ?: PlatformConfig(platform, "")
                 val crawler = crawlers[platform]
                 
                 if (crawler == null) {
@@ -66,7 +67,7 @@ class CrawlManager(
     suspend fun crawlMultiplePlatforms(platforms: List<PlatformType> = PlatformType.values().toList()): List<CrawlResult> {
         return coroutineScope {
             platforms
-                .filter { platformConfigs.find { it.platform == it }?.enabled == true }
+                .filter { platform -> platformConfigs.find { cfg -> cfg.platform == platform }?.enabled == true }
                 .map { platform ->
                     async {
                         crawlPlatform(platform)
@@ -93,7 +94,8 @@ class CrawlManager(
             PlatformType.JINJIANG -> JjwxCrawler(cookies)
             PlatformType.DOUBAN -> DoubanCrawler(cookies)
             PlatformType.FANQIE -> FanqieCrawler(cookies)
+            PlatformType.QIMAO -> QimaoCrawler(cookies)
         }
-        crawlers.toMutableMap()[platform] = newCrawler
+        (crawlers as MutableMap)[platform] = newCrawler
     }
 }
