@@ -1,32 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">书籍排行榜</string>
-    <string name="tab_qidian">起点</string>
-    <string name="tab_jinjiang">晋江</string>
-    <string name="tab_douban">豆瓣</string>
-    <string name="tab_fanqie">番茄</string>
-    <string name="hot_rank">热门排行</string>
-    <string name="search_hint">搜索书名/作者</string>
-    <string name="crawl">爬取</string>
-    <string name="crawl_all">全部爬取</string>
-    <string name="settings">设置</string>
-    <string name="refresh">刷新</string>
-    <string name="export">导出数据</string>
-    <string name="loading">加载中...</string>
-    <string name="error_network">网络错误</string>
-    <string name="error_crawl">爬取失败</string>
-    <string name="success_crawl">爬取成功</string>
-    <string name="no_data">暂无数据</string>
-    <string name="author_prefix">作者：</string>
-    <string name="word_count_prefix">字数：</string>
-    <string name="heat_prefix">热度：</string>
-    <string name="score_prefix">评分：</string>
-    <string name="platform_qidian">起点中文网</string>
-    <string name="platform_jinjiang">晋江文学城</string>
-    <string name="platform_douban">豆瓣读书</string>
-    <string name="platform_fanqie">番茄小说</string>
-    <string name="schedule_title">定时更新</string>
-    <string name="schedule_desc">每 12 小时自动更新排行榜</string>
-    <string name="cookie_settings">Cookie 设置</string>
-    <string name="cookie_desc">设置平台 Cookie 以获取完整数据</string>
 </resources>
